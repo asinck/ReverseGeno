@@ -137,9 +137,9 @@ void ReverseGeno::Event (bz_EventData *eventData)
 	    if (bait != -1 && bait == dieData->playerID)
 	    {
 		//bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %s, Player: %s (%d,%d)", bz_getPlayerCallsign(bait), bz_getPlayerCallsign(dieData->playerID), bait, dieData->playerID);
-		if (bz_getPlayerTeam(bait)== bz_getPlayerTeam(dieData->playerID)) {
+		if (bz_getPlayerTeam(bait) == bz_getPlayerTeam(dieData->killerID)) {
 		    bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Fail! %s just committed genocide on their own team!", bz_getPlayerCallsign(bait));
-		    
+		    //bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %s, other: %s ", bz_getPlayerTeam(bait), bz_getPlayerTeam(dieData->playerID));
 		}
 		else {
 		    bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Score! %s just baited %s into committing genocide on their own team!", bz_getPlayerCallsign(bait), bz_getPlayerCallsign(dieData->killerID));
