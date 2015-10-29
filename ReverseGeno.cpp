@@ -77,6 +77,8 @@ public:
 
     int     bait;          ///< The ID of the player holding the flag
     int     fish;          ///< The ID of the player to shoot the bait
+    int     messageNumber; ///< The number of the message that the server is giving to the user
+                           ///<     to tell them how long till death
 
     double  grabTime;      ///< The server time of when the flag was picked up
     double  shotTime;      ///< The server time when the bait was shot
@@ -117,7 +119,8 @@ void ReverseGeno::Event (bz_EventData *eventData)
 	    {
 		bait = flagGrabData->playerID;
 	        grabTime = flagGrabData->eventTime;
-		bz_sendTextMessagef(BZ_SERVER, bait, "Get shot within five seconds to kill the other team and avoid self-destruction!");
+		messageNumber = 5;
+		bz_sendTextMessagef(BZ_SERVER, bait, "FIVE SECONDS TO DIE! Get killed before you DIE!");
 	    }
 
             // Data
@@ -146,7 +149,7 @@ void ReverseGeno::Event (bz_EventData *eventData)
 		}
 		
 		genoOtherTeam(dieData->killerTeam, false, dieData->playerID, bait, "RG");
-	        grabTime = 0;
+	        grabTime = -1;
 		bait = -1;
 		//bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %0d, Player: %s (%d,%d)", bait, bz_getPlayerCallsign(dieData->playerID), bait, dieData->playerID);
 	    }
@@ -167,12 +170,39 @@ void ReverseGeno::Event (bz_EventData *eventData)
         case bz_eTickEvent: // This event is called once for each BZFS main loop
         {
             bz_TickEventData_V1* tickData = (bz_TickEventData_V1*)eventData;
-	    if (grabTime && (tickData->eventTime - grabTime) >= 5)
-	    {
-		int player = bait;
-		bait = -1;
-	        bz_killPlayer(player, 0, 255, "RG");
+	    if (grabTime != -1) {
+		double timeSinceGrab = tickData->eventTime - grabTime;
+		if (timeSinceGrab >= 5)
+		{
+		    int player = bait;
+		    bait = -1;
+		    grabTime = -1;
+		    messageNumber = 5;
+		    bz_sendTextMessagef(BZ_SERVER, player, "YOU FAILED TO GET KILLED, SO YOU DIE.");
+		    bz_killPlayer(player, 0, 255, "RG");
+		}
+		else if (timeSinceGrab >= 4 && messageNumber > 1)
+		{
+		    bz_sendTextMessagef(BZ_SERVER, bait, "ONE");
+		    messageNumber = 1;
+		}
+		else if (timeSinceGrab >= 3 && messageNumber > 2)
+		{
+		    bz_sendTextMessagef(BZ_SERVER, bait, "TWO");
+		    messageNumber = 2;
+		}
+		else if (timeSinceGrab >= 2 && messageNumber > 3)
+		{
+		    bz_sendTextMessagef(BZ_SERVER, bait, "THREE");
+		    messageNumber = 3;
+		}
+		else if (timeSinceGrab >= 1 && messageNumber > 4)
+		{
+		    bz_sendTextMessagef(BZ_SERVER, bait, "FOUR");
+		    messageNumber = 4;
+		}
 	    }
+	    
             // Data
             // ---
             //    (double)  eventTime - Local Server time of the event (in seconds)
