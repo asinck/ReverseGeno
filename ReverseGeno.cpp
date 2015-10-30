@@ -87,7 +87,7 @@ public:
 BZ_PLUGIN(ReverseGeno)
 
 
-void ReverseGeno::Init (const char* commandLine)
+void ReverseGeno::Init (const char* /*commandLine*/)
 {
     // Register our events with Register()
     Register(bz_eFlagGrabbedEvent);
@@ -179,7 +179,7 @@ void ReverseGeno::Event (bz_EventData *eventData)
 		    grabTime = -1;
 		    messageNumber = 5;
 		    bz_sendTextMessagef(BZ_SERVER, player, "YOU FAILED TO GET KILLED, SO YOU DIE.");
-		    bz_killPlayer(player, 0, 255, "RG");
+		    bz_killPlayer(player, 0, BZ_SERVER, "RG");
 		}
 		else if (timeSinceGrab >= 4 && messageNumber > 1)
 		{
