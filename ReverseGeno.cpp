@@ -1,28 +1,28 @@
 /*
   Reverse Geno
   Copyright (C) 2015, Adam Sinck (the map)
-All rights reserved.
+  All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+  Redistribution and use in source and binary forms, with or without modification,
+  are permitted provided that the following conditions are met:
 
-1. Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
+  1. Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation and/or
-other materials provided with the distribution.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <memory>
@@ -46,24 +46,26 @@ static void genoOtherTeam(bz_eTeamType team = eNoTeam, bool spawnOnBase = false,
     // If the playerlist is valid
     if (playerList)
     {
-	if (team == eNoTeam && bait != -1 && bait == killerID)
-	{
-	    for (unsigned int i = 0; i < playerList->size(); i++)
-	    {
-		int playerID = playerList->get(i);
-		bz_killPlayer(playerID, spawnOnBase, killerID, flagAbbr);
-	    }
-	}
-	else if (bait != -1 && bait == killerID)
-	{
-	    for (unsigned int i = 0; i < playerList->size(); i++)
-	    {
-		int playerID = playerList->get(i);
-		if (bz_getPlayerTeam(playerID) == team)
-		    bz_killPlayer(playerID, spawnOnBase, killerID, flagAbbr);
-	    }
-	}
-	    
+        //if no team, kill everyone
+        if (team == eNoTeam && bait != -1 && bait == killerID)
+        {
+            for (unsigned int i = 0; i < playerList->size(); i++)
+            {
+                int playerID = playerList->get(i);
+                bz_killPlayer(playerID, spawnOnBase, killerID, flagAbbr);
+            }
+        }
+
+        else if (bait != -1 && bait == killerID)
+        {
+            for (unsigned int i = 0; i < playerList->size(); i++)
+            {
+                int playerID = playerList->get(i);
+                if (bz_getPlayerTeam(playerID) == team)
+                    bz_killPlayer(playerID, spawnOnBase, killerID, flagAbbr);
+            }
+        }
+            
     }
 }
 
@@ -112,16 +114,16 @@ void ReverseGeno::Event (bz_EventData *eventData)
 {
     switch (eventData->eventType)
     {
-        case bz_eFlagGrabbedEvent: // This event is called each time a flag is grabbed by a player
+    case bz_eFlagGrabbedEvent: // This event is called each time a flag is grabbed by a player
         {
             bz_FlagGrabbedEventData_V1* flagGrabData = (bz_FlagGrabbedEventData_V1*)eventData;
-	    if (strcmp(flagGrabData->flagType, "RG") == 0)
-	    {
-		bait = flagGrabData->playerID;
-	        grabTime = flagGrabData->eventTime;
-		messageNumber = 5;
-		bz_sendTextMessagef(BZ_SERVER, bait, "FIVE SECONDS TO DIE! Get killed before you DIE!");
-	    }
+            if (strcmp(flagGrabData->flagType, "RG") == 0)
+            {
+                bait = flagGrabData->playerID;
+                grabTime = flagGrabData->eventTime;
+                messageNumber = 5;
+                bz_sendTextMessagef(BZ_SERVER, bait, "FIVE SECONDS TO DIE! Get killed before you DIE!");
+            }
 
             // Data
             // ---
@@ -134,25 +136,30 @@ void ReverseGeno::Event (bz_EventData *eventData)
         break;
 
 
-        case bz_ePlayerDieEvent: // This event is called each time a tank is killed.
+    case bz_ePlayerDieEvent: // This event is called each time a tank is killed.
         {
             bz_PlayerDieEventData_V1* dieData = (bz_PlayerDieEventData_V1*)eventData;
-	    if (bait != -1 && bait == dieData->playerID)
-	    {
-		//bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %s, Player: %s (%d,%d)", bz_getPlayerCallsign(bait), bz_getPlayerCallsign(dieData->playerID), bait, dieData->playerID);
-		if (bz_getPlayerTeam(bait) == bz_getPlayerTeam(dieData->killerID)) {
-		    bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Fail! %s just committed genocide on their own team!", bz_getPlayerCallsign(bait));
-		    //bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %s, other: %s ", bz_getPlayerTeam(bait), bz_getPlayerTeam(dieData->playerID));
-		}
-		else {
-		    bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Score! %s just baited %s into committing genocide on their own team!", bz_getPlayerCallsign(bait), bz_getPlayerCallsign(dieData->killerID));
-		}
-		
-		genoOtherTeam(dieData->killerTeam, false, dieData->playerID, bait, "RG");
-	        grabTime = -1;
-		bait = -1;
-		//bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %0d, Player: %s (%d,%d)", bait, bz_getPlayerCallsign(dieData->playerID), bait, dieData->playerID);
-	    }
+            if (bait != -1 && bait != dieData->killerID && bait == dieData->playerID)
+            {
+                //bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %s, Player: %s (%d,%d)", bz_getPlayerCallsign(bait), bz_getPlayerCallsign(dieData->playerID), bait, dieData->playerID);
+                if (bz_getPlayerTeam(bait) == bz_getPlayerTeam(dieData->killerID)) {
+                    bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Fail! %s just committed genocide on their own team!", bz_getPlayerCallsign(bait));
+                    //bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %s, other: %s ", bz_getPlayerTeam(bait), bz_getPlayerTeam(dieData->playerID));
+                }
+                else {
+                    bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Score! %s just baited %s into committing genocide on their own team!", bz_getPlayerCallsign(bait), bz_getPlayerCallsign(dieData->killerID));
+                }
+                
+                genoOtherTeam(dieData->killerTeam, false, dieData->playerID, bait, "RG");
+                grabTime = -1;
+                bait = -1;
+                //bz_sendTextMessagef(BZ_SERVER, BZ_ALLUSERS, "Bait: %0d, Player: %s (%d,%d)", bait, bz_getPlayerCallsign(dieData->playerID), bait, dieData->playerID);
+            }
+            else if (bait != -1 && bait == dieData->killerID && bait == dieData->playerID)
+            {
+                grabTime = -1;
+                bait = -1;
+            }
 
             // Data
             // ---
@@ -167,48 +174,48 @@ void ReverseGeno::Event (bz_EventData *eventData)
         }
         break;
 
-        case bz_eTickEvent: // This event is called once for each BZFS main loop
+    case bz_eTickEvent: // This event is called once for each BZFS main loop
         {
             bz_TickEventData_V1* tickData = (bz_TickEventData_V1*)eventData;
-	    if (grabTime != -1) {
-		double timeSinceGrab = tickData->eventTime - grabTime;
-		if (timeSinceGrab >= 5)
-		{
-		    int player = bait;
-		    bait = -1;
-		    grabTime = -1;
-		    messageNumber = 5;
-		    bz_sendTextMessagef(BZ_SERVER, player, "YOU FAILED TO GET KILLED, SO YOU DIE.");
-		    bz_killPlayer(player, 0, BZ_SERVER, "RG");
-		}
-		else if (timeSinceGrab >= 4 && messageNumber > 1)
-		{
-		    bz_sendTextMessagef(BZ_SERVER, bait, "ONE");
-		    messageNumber = 1;
-		}
-		else if (timeSinceGrab >= 3 && messageNumber > 2)
-		{
-		    bz_sendTextMessagef(BZ_SERVER, bait, "TWO");
-		    messageNumber = 2;
-		}
-		else if (timeSinceGrab >= 2 && messageNumber > 3)
-		{
-		    bz_sendTextMessagef(BZ_SERVER, bait, "THREE");
-		    messageNumber = 3;
-		}
-		else if (timeSinceGrab >= 1 && messageNumber > 4)
-		{
-		    bz_sendTextMessagef(BZ_SERVER, bait, "FOUR");
-		    messageNumber = 4;
-		}
-	    }
-	    
+            if (grabTime != -1) {
+                double timeSinceGrab = tickData->eventTime - grabTime;
+                if (timeSinceGrab >= 5)
+                {
+                    int player = bait;
+                    bait = -1;
+                    grabTime = -1;
+                    messageNumber = 5;
+                    bz_sendTextMessagef(BZ_SERVER, player, "YOU FAILED TO GET KILLED, SO YOU DIE.");
+                    bz_killPlayer(player, 0, BZ_SERVER, "RG");
+                }
+                else if (timeSinceGrab >= 4 && messageNumber > 1)
+                {
+                    bz_sendTextMessagef(BZ_SERVER, bait, "ONE");
+                    messageNumber = 1;
+                }
+                else if (timeSinceGrab >= 3 && messageNumber > 2)
+                {
+                    bz_sendTextMessagef(BZ_SERVER, bait, "TWO");
+                    messageNumber = 2;
+                }
+                else if (timeSinceGrab >= 2 && messageNumber > 3)
+                {
+                    bz_sendTextMessagef(BZ_SERVER, bait, "THREE");
+                    messageNumber = 3;
+                }
+                else if (timeSinceGrab >= 1 && messageNumber > 4)
+                {
+                    bz_sendTextMessagef(BZ_SERVER, bait, "FOUR");
+                    messageNumber = 4;
+                }
+            }
+            
             // Data
             // ---
             //    (double)  eventTime - Local Server time of the event (in seconds)
         }
         break;
 
-        default: break;
+    default: break;
     }
 }
